@@ -5,11 +5,6 @@ const c = canvas.getContext("2d")
 canvas.width = window.innerWidth
 canvas.height = window.innerHeight
 
-const mouse = {
-    x: window.innerWidth / 2,
-    y: window.innerHeight / 2,
-}
-
 addEventListener("resize", () => {
     canvas.width = window.innerWidth
     canvas.height = window.innerHeight
@@ -20,13 +15,15 @@ const gravity = 0.005
 const friction = 0.99
 
 class Particle {
-    constructor (x, y, radius, color, velocity) {
+    constructor (x, y, radius, color, velocity, gravity, friction) {
         this.x = x
         this.y = y
         this.radius = radius
         this.color = color
         this.velocity = velocity
         this.alpha = 1
+        this.gravity = gravity
+        this.friction = friction
     }
 
     draw() {
@@ -42,15 +39,15 @@ class Particle {
 
     update() {
         this.draw()
-        this.velocity.x *= friction
-        this.velocity.y *= friction
-        this.velocity.y += gravity
+        this.velocity.x *= this.friction
+        this.velocity.y *= this.friction
+        this.velocity.y += this.gravity
         this.x += this.velocity.x
         this.y += this.velocity.y
         this.alpha -= 0.005
-
     }
 }
+
 
 let particles 
 
@@ -58,9 +55,10 @@ function init() {
     particles = []
 }   
 
-function animate() {
-    requestAnimationFrame(animate)
-    c.fillStyle = 'rgba(0,0,0, 0.05)'
+function animateExplosition() {
+    requestAnimationFrame(animateExplosition)
+    
+    c.fillStyle = 'rgba(10,10,10, 0.09)'
     c.fillRect(0,0, canvas.width, canvas.height);
 
     particles = particles.filter(p => p.alpha > 0)
@@ -69,29 +67,61 @@ function animate() {
     });
 }
 
+function animateFirework(){
+    requestAnimationFrame(animateFirework)    
+}
+
 
 init()  
-animate()
+animateExplosition()
 
 addEventListener('click', (e) => {
+    const mouse = {}
     mouse.x = e.clientX
     mouse.y = e.clientY
 
-    const particlesCount = 1000
-    const angleIncrement = (Math.PI * 2) / particlesCount    
+    const particlesCount = 400
+    const angleIncrement = (Math.PI * 2) / particlesCount
     const power = 3
+    const color = '#' + ((0xFFFF * Math.random() << 0).toString(16));
 
-    console.log(mouse);
-    for (let i = 0; i < particlesCount; i++) {
-        particles.push(new Particle(
+    (() => {
+        const f = new Particle(
             mouse.x, 
-            mouse.y, 
+            mouse.y + 300, 
             2, 
-            '#' + ((0xFFFF * Math.random() << 0).toString(16)) , 
+            color, 
             { 
-                x: Math.cos(angleIncrement * i) * Math.random() * power, 
-                y: Math.sin(angleIncrement * i) * Math.random() * power
+                x: 0, 
+                y: -2
+            },
+            -0.04,
+            1
+        )
+        
+        const firework = () => {
+            if (f.y >= mouse.y) {
+                f.update()
+                c.fillStyle = 'rgba(10,10,10, 0.0005)'
+                c.fillRect(0,0, canvas.width, canvas.height);
+                requestAnimationFrame(firework)
+            } else {
+                for (let i = 0; i < particlesCount; i++) {
+                    particles.push(new Particle(
+                        mouse.x, 
+                        mouse.y, 
+                        2, 
+                        color , 
+                        { 
+                            x: Math.cos(angleIncrement * i) * Math.random() * power, 
+                            y: Math.sin(angleIncrement * i) * Math.random() * power
+                        },
+                        gravity,
+                        friction
+                    ))
+                }
             }
-        ))
-    }
+        }
+        firework()
+    })()
 })
