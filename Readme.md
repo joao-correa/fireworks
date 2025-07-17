@@ -1,6 +1,6 @@
-# Small fireworks animation made with raw html/css/javascript
+### Small fireworks animation built with pure html/css/javascript
 
-# How to run
+### How to run
 ```bash
 npx http-server .
 ```
